@@ -6,6 +6,7 @@
 import 'dart:async' as _i4;
 import 'dart:ui' as _i8;
 
+import 'package:aurora_image_gen/services/api_service.dart' as _i11;
 import 'package:flutter/material.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stacked/stacked.dart' as _i2;
@@ -588,3 +589,8 @@ class MockDialogService extends _i1.Mock implements _i9.DialogService {
         returnValueForMissingStub: null,
       );
 }
+
+/// A class which mocks [ApiService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockApiService extends _i1.Mock implements _i11.ApiService {}
