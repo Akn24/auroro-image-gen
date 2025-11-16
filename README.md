@@ -19,7 +19,7 @@ A Flutter app that fetches random images from an API, displays them centered as 
 ---
 
 ## Demo
-[![Watch the video](https://img.shields.io/badge/Watch-Demo-blue)](assets/demo_aurora.mp4)
+[![Watch the video](https://img.shields.io/badge/Watch-Demo-blue)](demo_assets/demo_aurora.mp4)
 
 ---
 
