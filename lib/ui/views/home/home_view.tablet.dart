@@ -1,71 +1,113 @@
-import 'package:aurora_image_gen/ui/common/app_colors.dart';
-import 'package:aurora_image_gen/ui/common/ui_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-
+import 'package:cached_network_image/cached_network_image.dart';
 import 'home_viewmodel.dart';
 
-class HomeViewTablet extends ViewModelWidget<HomeViewModel> {
+class HomeViewTablet extends StatelessWidget {
   const HomeViewTablet({super.key});
 
   @override
-  Widget build(BuildContext context, HomeViewModel viewModel) {
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 25.0),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                verticalSpaceLarge,
-                Column(
-                  children: [
-                    const Text(
-                      'Hello, TABLET UI!',
-                      style: TextStyle(
-                        fontSize: 35,
-                        fontWeight: FontWeight.w900,
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return ViewModelBuilder<HomeViewModel>.reactive(
+      viewModelBuilder: () => HomeViewModel(),
+      onViewModelReady: (model) => model.init(),
+      builder: (context, model, child) {
+        final screenWidth = MediaQuery.of(context).size.width;
+        final imageSize = screenWidth * 0.4 > 500 ? 500.0 : screenWidth * 0.4;
+
+        final isLoading =
+            model.isBusy || (model.imageUrl == null && model.err == null);
+
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+          color: model.backgroundColor,
+          child: Scaffold(
+            backgroundColor: Colors.transparent,
+            body: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: imageSize,
+                    height: imageSize,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 400),
+                        child: isLoading
+                            ? _loading(theme)
+                            : model.imageUrl != null
+                                ? _image(model)
+                                : _loading(theme),
                       ),
                     ),
-                    verticalSpaceMedium,
-                    MaterialButton(
-                      color: Colors.black,
-                      onPressed: viewModel.incrementCounter,
-                      child: Text(
-                        viewModel.counterLabel,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    MaterialButton(
-                      color: kcDarkGreyColor,
-                      onPressed: viewModel.showDialog,
-                      child: const Text(
-                        'Show Dialog',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                    MaterialButton(
-                      color: kcDarkGreyColor,
-                      onPressed: viewModel.showBottomSheet,
-                      child: const Text(
-                        'Show Bottom Sheet',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                  ),
+                  const SizedBox(height: 24),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 400),
+                    child: model.err != null
+                        ? Text(
+                            model.err!,
+                            key: const ValueKey('error'),
+                            style: TextStyle(color: theme.colorScheme.error),
+                            textAlign: TextAlign.center,
+                          )
+                        : const SizedBox.shrink(key: ValueKey('no-error')),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: model.isBusy ? null : model.fetchImage,
+                    style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 32, vertical: 16),
+                        textStyle: const TextStyle(fontSize: 18)),
+                    child: const Text("Another"),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
+        );
+      },
+    );
+  }
+
+  Widget _loading(ThemeData theme) {
+    return Container(
+      key: const ValueKey('loading'),
+      color: theme.colorScheme.surface,
+      child: const Center(
+        child: CircularProgressIndicator(),
       ),
+    );
+  }
+
+  Widget _image(HomeViewModel model) {
+    return CachedNetworkImage(
+      key: ValueKey(model.imageUrl),
+      imageUrl: model.imageUrl!,
+      fit: BoxFit.cover,
+      fadeInDuration: const Duration(milliseconds: 350),
+      placeholder: (_, __) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+      errorWidget: (_, __, ___) => const Icon(Icons.error, color: Colors.red),
+      imageBuilder: (context, imageProvider) {
+        return Semantics(
+          label: 'Random image from Unsplash',
+          child: Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: imageProvider,
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
